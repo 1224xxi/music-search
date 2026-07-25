@@ -419,6 +419,7 @@
         </div>
         <div class="settings-actions">
           <button class="reset-btn" id="resetColors">기본값으로</button>
+          <button class="reset-btn" id="copyColorLink">이 설정으로 링크 복사</button>
         </div>
 
         <div class="divider-line"></div>
@@ -504,6 +505,16 @@ function applyColors(colors) {
 }
 
 function loadColors() {
+  // URL 파라미터가 있으면 최우선으로 사용 (임베드 저장공간이 날아가도 유지됨)
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('accent')) {
+    return {
+      bg: '#' + (params.get('bg') || DEFAULT_COLORS.bg.replace('#', '')),
+      bgCard: '#' + (params.get('card') || DEFAULT_COLORS.bgCard.replace('#', '')),
+      accent: '#' + (params.get('accent') || DEFAULT_COLORS.accent.replace('#', '')),
+      text: '#' + (params.get('text') || DEFAULT_COLORS.text.replace('#', '')),
+    };
+  }
   try {
     const saved = JSON.parse(localStorage.getItem('musicWidgetColors'));
     return saved ? { ...DEFAULT_COLORS, ...saved } : { ...DEFAULT_COLORS };
@@ -535,6 +546,23 @@ resetColorsBtn.addEventListener('click', () => {
   currentColors = { ...DEFAULT_COLORS };
   applyColors(currentColors);
   saveColors(currentColors);
+});
+
+document.getElementById('copyColorLink').addEventListener('click', async () => {
+  const base = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams({
+    bg: currentColors.bg.replace('#', ''),
+    card: currentColors.bgCard.replace('#', ''),
+    accent: currentColors.accent.replace('#', ''),
+    text: currentColors.text.replace('#', ''),
+  });
+  const link = `${base}?${params.toString()}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    showToast('링크 복사됨 — Notion 임베드 URL을 이걸로 바꿔주세요');
+  } catch (e) {
+    showToast('복사 실패: ' + link);
+  }
 });
 
 // ---- Worker 연결 설정 ----
