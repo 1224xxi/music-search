@@ -424,11 +424,21 @@ const accentColorInput = document.getElementById('accentColor');
 const textColorInput = document.getElementById('textColor');
 const resetColorsBtn = document.getElementById('resetColors');
 
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function applyColors(colors) {
   const root = document.documentElement.style;
   root.setProperty('--bg', colors.bg);
   root.setProperty('--bg-card', colors.bgCard);
   root.setProperty('--accent', colors.accent);
+  root.setProperty('--accent-dim', hexToRgba(colors.accent, 0.2));
   root.setProperty('--text', colors.text);
   bgColorInput.value = colors.bg;
   cardColorInput.value = colors.bgCard;
