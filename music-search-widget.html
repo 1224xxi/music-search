@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>음악 검색</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14151a;
+    --bg-card: #1c1e26;
+    --bg-card-hover: #24273099;
+    --accent: #e8b04b;
+    --accent-dim: #e8b04b33;
+    --text: #f2f0ea;
+    --text-muted: #8b8d98;
+    --border: #2c2e38;
+    --track-color: #7fa8d9;
+    --album-color: #e8b04b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+  }
+
+  button.search-btn {
+    background: var(--accent);
+    color: #14151a;
+    border: none;
+    border-radius: 10px;
+    padding: 0 22px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.15s;
+  }
+
+  button.search-btn:hover { opacity: 0.85; }
+  button.search-btn:active { opacity: 0.7; }
+
+  .filters {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .filter-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 24px 0 12px;
+    min-height: 16px;
+  }
+
+  .results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    position: relative;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+  }
+
+  .card:active {
+    transform: scale(0.99);
+  }
+
+  .art-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+  }
+
+  .art {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #2a2c36;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  }
+
+  .art-hole {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 10px; height: 10px;
+    background: var(--bg-card);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(0,0,0,0.3);
+  }
+
+  .meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .title {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .type-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .type-tag.track { color: var(--track-color); background: #7fa8d91a; }
+  .type-tag.album { color: var(--album-color); background: #e8b04b1a; }
+
+  .artist {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #14151a;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .cover-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .cover-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .title-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .gear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 15px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .gear-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .settings-panel {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 14px;
+    gap: 14px;
+    flex-direction: column;
+  }
+  .settings-panel.open { display: flex; }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .setting-row label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .setting-row input[type="color"] {
+    width: 40px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  .settings-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .reset-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .divider-line {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .setting-row-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .text-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+  }
+  .text-input:focus { border-color: var(--accent); }
+
+  .save-btn {
+    background: var(--accent);
+    color: #14151a;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .save-btn:hover { opacity: 0.85; }
+  .save-btn:disabled { opacity: 0.5; cursor: default; }
+  .save-btn.saved { background: #6fbf73; }
+  .save-btn.failed { background: #d96a6a; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title-bar">
+        <div>
+          <h1>음악 검색</h1>
+          <div class="sub">TRACK / ALBUM LOOKUP — TAP TO COPY</div>
+        </div>
+        <button class="gear-btn" id="gearBtn" title="색상 설정">⚙</button>
+      </div>
+
+      <div class="settings-panel" id="settingsPanel">
+        <div class="setting-row">
+          <label>배경 색</label>
+          <input type="color" id="bgColor">
+        </div>
+        <div class="setting-row">
+          <label>카드 배경 색</label>
+          <input type="color" id="cardColor">
+        </div>
+        <div class="setting-row">
+          <label>포인트 색</label>
+          <input type="color" id="accentColor">
+        </div>
+        <div class="setting-row">
+          <label>글자 색</label>
+          <input type="color" id="textColor">
+        </div>
+        <div class="settings-actions">
+          <button class="reset-btn" id="resetColors">기본값으로</button>
+        </div>
+
+        <div class="divider-line"></div>
+
+        <div class="setting-row-col">
+          <label>Worker 주소</label>
+          <input type="text" id="workerUrl" placeholder="https://music-search-proxy.xxx.workers.dev" class="text-input">
+        </div>
+        <div class="setting-row-col">
+          <label>비밀번호 (WIDGET_SECRET)</label>
+          <input type="password" id="workerSecret" placeholder="Cloudflare에 설정한 비밀번호" class="text-input">
+        </div>
+        <div class="settings-actions">
+          <button class="reset-btn" id="saveWorkerSettings">저장</button>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <input type="text" id="q" placeholder="곡 또는 앨범, 아티스트로 검색" autocomplete="off">
+        <button class="search-btn" id="searchBtn">검색</button>
+      </div>
+      <div class="filters">
+        <button class="filter-chip active" data-entity="album,song">전체</button>
+        <button class="filter-chip" data-entity="song">트랙만</button>
+        <button class="filter-chip" data-entity="album">앨범만</button>
+      </div>
+    </header>
+
+    <div class="status" id="status"></div>
+    <div class="results" id="results">
+      <div class="empty">검색어를 입력하고 Enter를 누르거나<br>검색 버튼을 눌러주세요</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const q = document.getElementById('q');
+const searchBtn = document.getElementById('searchBtn');
+const resultsEl = document.getElementById('results');
+const statusEl = document.getElementById('status');
+const toastEl = document.getElementById('toast');
+const chips = document.querySelectorAll('.filter-chip');
+
+let currentEntity = 'album,song';
+
+// ---- 색상 설정 ----
+const DEFAULT_COLORS = {
+  bg: '#14151a',
+  bgCard: '#1c1e26',
+  accent: '#e8b04b',
+  text: '#f2f0ea'
+};
+
+const gearBtn = document.getElementById('gearBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const bgColorInput = document.getElementById('bgColor');
+const cardColorInput = document.getElementById('cardColor');
+const accentColorInput = document.getElementById('accentColor');
+const textColorInput = document.getElementById('textColor');
+const resetColorsBtn = document.getElementById('resetColors');
+
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function applyColors(colors) {
+  const root = document.documentElement.style;
+  root.setProperty('--bg', colors.bg);
+  root.setProperty('--bg-card', colors.bgCard);
+  root.setProperty('--accent', colors.accent);
+  root.setProperty('--accent-dim', hexToRgba(colors.accent, 0.2));
+  root.setProperty('--text', colors.text);
+  bgColorInput.value = colors.bg;
+  cardColorInput.value = colors.bgCard;
+  accentColorInput.value = colors.accent;
+  textColorInput.value = colors.text;
+}
+
+function loadColors() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('musicWidgetColors'));
+    return saved ? { ...DEFAULT_COLORS, ...saved } : { ...DEFAULT_COLORS };
+  } catch (e) {
+    return { ...DEFAULT_COLORS };
+  }
+}
+
+function saveColors(colors) {
+  localStorage.setItem('musicWidgetColors', JSON.stringify(colors));
+}
+
+let currentColors = loadColors();
+applyColors(currentColors);
+
+gearBtn.addEventListener('click', () => {
+  settingsPanel.classList.toggle('open');
+});
+
+[['bg', bgColorInput], ['bgCard', cardColorInput], ['accent', accentColorInput], ['text', textColorInput]].forEach(([key, input]) => {
+  input.addEventListener('input', () => {
+    currentColors[key] = input.value;
+    applyColors(currentColors);
+    saveColors(currentColors);
+  });
+});
+
+resetColorsBtn.addEventListener('click', () => {
+  currentColors = { ...DEFAULT_COLORS };
+  applyColors(currentColors);
+  saveColors(currentColors);
+});
+
+// ---- Worker 연결 설정 ----
+const workerUrlInput = document.getElementById('workerUrl');
+const workerSecretInput = document.getElementById('workerSecret');
+const saveWorkerBtn = document.getElementById('saveWorkerSettings');
+
+function loadWorkerConfig() {
+  try {
+    return JSON.parse(localStorage.getItem('musicWidgetWorker')) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+let workerConfig = loadWorkerConfig();
+workerUrlInput.value = workerConfig.url || '';
+workerSecretInput.value = workerConfig.secret || '';
+
+saveWorkerBtn.addEventListener('click', () => {
+  workerConfig = { url: workerUrlInput.value.trim(), secret: workerSecretInput.value };
+  localStorage.setItem('musicWidgetWorker', JSON.stringify(workerConfig));
+  showToast('Worker 설정 저장됨');
+});
+
+async function saveToNotion({ title, artist, date, typeLabel, art, btn }) {
+  if (!workerConfig.url || !workerConfig.secret) {
+    showToast('먼저 ⚙에서 Worker 주소/비밀번호를 저장해주세요');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '저장 중';
+  btn.classList.remove('saved', 'failed');
+
+  try {
+    const res = await fetch(workerConfig.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: workerConfig.secret,
+        title,
+        artist,
+        releaseDate: date,
+        type: typeLabel,
+        coverUrl: art,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || '저장 실패');
+
+    btn.textContent = '완료';
+    btn.classList.add('saved');
+    showToast(`"${title}" Notion에 저장됨`);
+  } catch (err) {
+    btn.textContent = '실패';
+    btn.classList.add('failed');
+    showToast('저장 실패: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '저장';
+      btn.classList.remove('saved', 'failed');
+    }, 2500);
+  }
+}
+
+chips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    chips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentEntity = chip.dataset.entity;
+    if (q.value.trim()) runSearch();
+  });
+});
+
+searchBtn.addEventListener('click', runSearch);
+q.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toastEl.classList.remove('show'), 2200);
+}
+
+async function copyText(text, label) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(label + ' 복사됨 — Notion에 붙여넣으세요');
+  } catch (e) {
+    showToast('복사 실패 — 직접 선택해서 복사해주세요');
+  }
+}
+
+async function runSearch() {
+  const term = q.value.trim();
+  if (!term) return;
+  statusEl.textContent = '검색 중...';
+  resultsEl.innerHTML = '';
+
+  try {
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${currentEntity}&limit=12&country=KR`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.results || data.results.length === 0) {
+      statusEl.textContent = '';
+      resultsEl.innerHTML = '<div class="empty">결과가 없어요. 다른 검색어로 시도해보세요</div>';
+      return;
+    }
+
+    statusEl.textContent = `${data.results.length}개 결과 · 카드를 누르면 제목/아티스트/발매일이 복사돼요`;
+    resultsEl.innerHTML = '';
+
+    data.results.forEach(item => {
+      const isAlbum = item.wrapperType === 'collection' || item.kind === 'album';
+      const title = isAlbum ? item.collectionName : item.trackName;
+      const artist = item.artistName;
+      const dateRaw = isAlbum ? item.releaseDate : item.releaseDate;
+      const date = fmtDate(dateRaw);
+      const art = (item.artworkUrl100 || '').replace('100x100', '600x600');
+      const albumOf = !isAlbum ? item.collectionName : '';
+      const typeLabel = isAlbum ? '앨범' : '트랙';
+      const typeClass = isAlbum ? 'album' : 'track';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="art-wrap">
+          <img class="art" src="${art}" loading="lazy" onerror="this.style.background='#2a2c36'; this.src='';">
+          <div class="art-hole"></div>
+        </div>
+        <div class="meta">
+          <div class="title-row">
+            <span class="title">${title || ''}</span>
+            <span class="type-tag ${typeClass}">${typeLabel}</span>
+          </div>
+          <div class="artist">${artist || ''}${albumOf ? ' · ' + albumOf : ''}</div>
+        </div>
+        <div class="date">${date}</div>
+        <button class="save-btn" title="Notion에 바로 저장">저장</button>
+        <button class="cover-btn" title="커버 이미지 URL만 복사">커버</button>
+      `;
+
+      card.querySelector('.save-btn').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const btn = e.currentTarget;
+        await saveToNotion({ title, artist, date, typeLabel, art, btn });
+      });
+
+      card.querySelector('.cover-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyText(art, '커버 URL');
+      });
+
+      card.addEventListener('click', () => {
+        const row = [title || '', artist || '', date, typeLabel].join('\t');
+        copyText(row, `"${title}"`);
+      });
+
+      resultsEl.appendChild(card);
+    });
+  } catch (err) {
+    statusEl.textContent = '';
+    resultsEl.innerHTML = '<div class="empty">검색 중 오류가 발생했어요<br>' + err.message + '</div>';
+  }
+}
+</script>
+</body>
+</html>
