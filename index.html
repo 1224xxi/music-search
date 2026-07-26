@@ -422,7 +422,7 @@ const toastEl = document.getElementById('toast');
 
 // ---- Worker 연결 정보 (한 번만 여기 채워두면 계속 유지돼요) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
+const WORKER_SECRET = 'jys.2180@';
 
 const SEARCH_ENTITY = 'album,song';
 
@@ -601,7 +601,7 @@ async function runSearch() {
   resultsEl.innerHTML = '';
 
   try {
-    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${SEARCH_ENTITY}&limit=12&country=KR`;
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${SEARCH_ENTITY}&limit=25&country=KR`;
     const res = await fetch(url);
     const data = await res.json();
 
