@@ -394,7 +394,8 @@
     <header>
       <div class="title-bar">
         <div>
-          <h1>search music!</h1>
+          <h1>음악 검색</h1>
+          <div class="sub">TRACK / ALBUM LOOKUP — TAP TO COPY</div>
         </div>
         <button class="gear-btn" id="gearBtn" title="색상 설정">⚙</button>
       </div>
@@ -419,20 +420,6 @@
         <div class="settings-actions">
           <button class="reset-btn" id="resetColors">기본값으로</button>
           <button class="reset-btn" id="copyColorLink">이 설정으로 링크 복사</button>
-        </div>
-
-        <div class="divider-line"></div>
-
-        <div class="setting-row-col">
-          <label>Worker 주소</label>
-          <input type="text" id="workerUrl" placeholder="https://music-search-proxy.xxx.workers.dev" class="text-input">
-        </div>
-        <div class="setting-row-col">
-          <label>비밀번호 (WIDGET_SECRET)</label>
-          <input type="password" id="workerSecret" placeholder="Cloudflare에 설정한 비밀번호" class="text-input">
-        </div>
-        <div class="settings-actions">
-          <button class="reset-btn" id="saveWorkerSettings">저장</button>
         </div>
       </div>
 
@@ -462,6 +449,10 @@ const resultsEl = document.getElementById('results');
 const statusEl = document.getElementById('status');
 const toastEl = document.getElementById('toast');
 const chips = document.querySelectorAll('.filter-chip');
+
+// ---- Worker 연결 정보 (한 번만 여기 채워두면 계속 유지돼요) ----
+const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
+const WORKER_SECRET = 'jys.2180@';
 
 let currentEntity = 'album,song';
 
@@ -564,32 +555,9 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
   }
 });
 
-// ---- Worker 연결 설정 ----
-const workerUrlInput = document.getElementById('workerUrl');
-const workerSecretInput = document.getElementById('workerSecret');
-const saveWorkerBtn = document.getElementById('saveWorkerSettings');
-
-function loadWorkerConfig() {
-  try {
-    return JSON.parse(localStorage.getItem('musicWidgetWorker')) || {};
-  } catch (e) {
-    return {};
-  }
-}
-
-let workerConfig = loadWorkerConfig();
-workerUrlInput.value = workerConfig.url || '';
-workerSecretInput.value = workerConfig.secret || '';
-
-saveWorkerBtn.addEventListener('click', () => {
-  workerConfig = { url: workerUrlInput.value.trim(), secret: workerSecretInput.value };
-  localStorage.setItem('musicWidgetWorker', JSON.stringify(workerConfig));
-  showToast('Worker 설정 저장됨');
-});
-
 async function saveToNotion({ title, artist, date, typeLabel, art, btn }) {
-  if (!workerConfig.url || !workerConfig.secret) {
-    showToast('먼저 ⚙에서 Worker 주소/비밀번호를 저장해주세요');
+  if (!WORKER_URL || WORKER_SECRET.includes('여기에')) {
+    showToast('widget 코드 상단의 WORKER_URL / WORKER_SECRET을 먼저 채워주세요');
     return;
   }
   btn.disabled = true;
@@ -597,11 +565,11 @@ async function saveToNotion({ title, artist, date, typeLabel, art, btn }) {
   btn.classList.remove('saved', 'failed');
 
   try {
-    const res = await fetch(workerConfig.url, {
+    const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        secret: workerConfig.secret,
+        secret: WORKER_SECRET,
         title,
         artist,
         releaseDate: date,
