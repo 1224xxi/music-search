@@ -96,6 +96,30 @@
   button.search-btn:hover { opacity: 0.85; }
   button.search-btn:active { opacity: 0.7; }
 
+  .sort-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .sort-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sort-chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
   .status {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
@@ -412,6 +436,10 @@
         <input type="text" id="q" placeholder="곡 또는 앨범, 아티스트로 검색" autocomplete="off">
         <button class="search-btn" id="searchBtn">검색</button>
       </div>
+      <div class="sort-row">
+        <button class="sort-chip active" data-sort="relevance">관련순</button>
+        <button class="sort-chip" data-sort="recent">최신순</button>
+      </div>
     </header>
 
     <div class="status" id="status"></div>
@@ -581,6 +609,17 @@ async function saveToNotion({ title, artist, date, typeLabel, art, btn, category
 searchBtn.addEventListener('click', runSearch);
 q.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
 
+let currentSort = 'relevance';
+const sortChips = document.querySelectorAll('.sort-chip');
+sortChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    sortChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentSort = chip.dataset.sort;
+    if (q.value.trim()) runSearch();
+  });
+});
+
 function fmtDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -621,6 +660,10 @@ async function runSearch() {
       statusEl.textContent = '';
       resultsEl.innerHTML = '<div class="empty">결과가 없어요. 다른 검색어로 시도해보세요</div>';
       return;
+    }
+
+    if (currentSort === 'recent') {
+      data.results.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
     }
 
     statusEl.textContent = `${data.results.length}개 결과 · 카드를 누르면 제목/아티스트/발매일이 복사돼요`;
