@@ -431,7 +431,7 @@ const toastEl = document.getElementById('toast');
 
 // ---- Worker 연결 정보 (한 번만 여기 채워두면 계속 유지돼요) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180@';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const SEARCH_ENTITY = 'album,song';
 
@@ -534,7 +534,7 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
   }
 });
 
-async function saveToNotion({ title, artist, date, typeLabel, art, btn, category }) {
+async function saveToNotion({ title, artist, date, typeLabel, art, btn, category, album }) {
   if (!WORKER_URL || WORKER_SECRET.includes('여기에')) {
     showToast('widget 코드 상단의 WORKER_URL / WORKER_SECRET을 먼저 채워주세요');
     return;
@@ -556,6 +556,7 @@ async function saveToNotion({ title, artist, date, typeLabel, art, btn, category
         type: typeLabel,
         coverUrl: art,
         category,
+        album,
       }),
     });
     const data = await res.json();
@@ -661,13 +662,13 @@ async function runSearch() {
       card.querySelector('.save-btn.release').addEventListener('click', async (e) => {
         e.stopPropagation();
         const btn = e.currentTarget;
-        await saveToNotion({ title, artist, date, typeLabel, art, btn, category: '신규 발매' });
+        await saveToNotion({ title, artist, date, typeLabel, art, btn, category: '신규 발매', album: albumOf });
       });
 
       card.querySelector('.save-btn.digging').addEventListener('click', async (e) => {
         e.stopPropagation();
         const btn = e.currentTarget;
-        await saveToNotion({ title, artist, date, typeLabel, art, btn, category: '신규 디깅' });
+        await saveToNotion({ title, artist, date, typeLabel, art, btn, category: '신규 디깅', album: albumOf });
       });
 
       card.querySelector('.cover-btn').addEventListener('click', (e) => {
