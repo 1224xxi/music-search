@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #14151a;
@@ -42,7 +43,7 @@
   }
 
   h1 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Dm Sans', sans-serif;
     font-weight: 600;
     font-size: 28px;
     margin: 0 0 4px;
@@ -135,8 +136,8 @@
 
   .card {
     display: flex;
-    align-items: center;
-    gap: 14px;
+    flex-direction: column;
+    gap: 8px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -144,6 +145,20 @@
     cursor: pointer;
     transition: border-color 0.15s, transform 0.1s;
     position: relative;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
   .card:hover {
@@ -182,7 +197,7 @@
 
   .meta {
     flex: 1;
-    min-width: 0;
+    min-width: 140px;
   }
 
   .title-row {
@@ -385,8 +400,8 @@
   }
   .save-btn-group {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    gap: 6px;
     flex-shrink: 0;
   }
   .save-btn.release { background: var(--album-color); }
@@ -458,7 +473,7 @@ const toastEl = document.getElementById('toast');
 
 // ---- Worker 연결 정보 (한 번만 여기 채워두면 계속 유지돼요) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180@';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const SEARCH_ENTITY = 'album,song';
 
@@ -682,23 +697,27 @@ async function runSearch() {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <div class="art-wrap">
-          <img class="art" src="${art}" loading="lazy" onerror="this.style.background='#2a2c36'; this.src='';">
-          <div class="art-hole"></div>
-        </div>
-        <div class="meta">
-          <div class="title-row">
-            <span class="title">${title || ''}</span>
-            <span class="type-tag ${typeClass}">${typeLabel}</span>
+        <div class="card-top">
+          <div class="art-wrap">
+            <img class="art" src="${art}" loading="lazy" onerror="this.style.background='#2a2c36'; this.src='';">
+            <div class="art-hole"></div>
           </div>
-          <div class="artist">${artist || ''}${albumOf ? ' · ' + albumOf : ''}</div>
+          <div class="meta">
+            <div class="title-row">
+              <span class="title">${title || ''}</span>
+              <span class="type-tag ${typeClass}">${typeLabel}</span>
+            </div>
+            <div class="artist">${artist || ''}${albumOf ? ' · ' + albumOf : ''}</div>
+          </div>
+          <div class="date">${date}</div>
         </div>
-        <div class="date">${date}</div>
-        <div class="save-btn-group">
-          <button class="save-btn release" title="신규 발매로 저장">발매</button>
-          <button class="save-btn digging" title="신규 디깅으로 저장">디깅</button>
+        <div class="card-actions">
+          <div class="save-btn-group">
+            <button class="save-btn release" title="신규 발매로 저장">발매</button>
+            <button class="save-btn digging" title="신규 디깅으로 저장">디깅</button>
+          </div>
+          <button class="cover-btn" title="커버 이미지 URL만 복사">커버</button>
         </div>
-        <button class="cover-btn" title="커버 이미지 URL만 복사">커버</button>
       `;
 
       card.querySelector('.save-btn.release').addEventListener('click', async (e) => {
