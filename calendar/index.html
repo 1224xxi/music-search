@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>음악 캘린더 — 목업</title>
+<title>음악 캘린더</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <style>
   :root {
@@ -29,17 +29,6 @@
     padding: 28px 12px 80px;
   }
   .wrap { max-width: 980px; margin: 0 auto; }
-  .mock-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--card);
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 20px;
-    margin-bottom: 18px;
-    letter-spacing: 0.02em;
-  }
 
   .widget-title-bar {
     display: flex;
@@ -114,7 +103,6 @@
   }
   .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* ---- 위젯 1: 캘린더 ---- */
   .cal-header {
     display: flex;
     align-items: center;
@@ -225,7 +213,6 @@
     color: var(--text);
   }
 
-  /* ---- 모달 ---- */
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(60, 55, 48, 0.35);
@@ -287,51 +274,10 @@
     color: var(--text);
     padding: 10px;
     border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'DM Sans', 'Pretendard', sans-serif;
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
-  }
-
-  /* ---- 위젯 2: 이달의 앨범 ---- */
-  .section-divider {
-    margin: 44px 0 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .section-divider h2 {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 18px;
-    margin: 0;
-    white-space: nowrap;
-  }
-  .section-divider .line { height: 1px; background: var(--border); flex: 1; }
-  .album-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .album-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-  }
-  .album-cover {
-    aspect-ratio: 1;
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--card);
-    border: 1px solid var(--border);
-  }
-  .album-cover img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  @media (max-width: 480px) {
-    .album-grid { grid-template-columns: repeat(4, 1fr); }
   }
 </style>
 </head>
@@ -365,7 +311,6 @@
     </div>
   </div>
 
-  <!-- 위젯 1: 캘린더 -->
   <div class="cal-header">
     <h1 id="monthTitle">2026년 7월</h1>
     <div class="cal-nav">
@@ -377,14 +322,6 @@
   <div class="cal-status" id="calStatus"></div>
 
   <div class="grid" id="calGrid"></div>
-
-  <!-- 위젯 2: 이달의 앨범 -->
-  <div class="section-divider">
-    <h2>이달의 앨범</h2>
-    <div class="line"></div>
-    <span class="album-count" id="albumCount">0장</span>
-  </div>
-  <div class="album-grid" id="albumGrid"></div>
 </div>
 
 <div class="modal-overlay hidden" id="modalOverlay">
@@ -396,7 +333,7 @@
 </div>
 
 <script>
-// ---- 색상 설정 (검색 위젯과 동일한 방식: URL 파라미터 우선, localStorage 보조) ----
+// ---- 색상 설정 (URL 파라미터 우선, localStorage 보조) ----
 const DEFAULT_COLORS = {
   bg: '#fbfaf8',
   card: '#f2efe9',
@@ -446,7 +383,7 @@ function loadColors() {
     };
   }
   try {
-    const saved = JSON.parse(localStorage.getItem('calendarWidgetColors'));
+    const saved = JSON.parse(localStorage.getItem('calendarViewColors'));
     return saved ? { ...DEFAULT_COLORS, ...saved } : { ...DEFAULT_COLORS };
   } catch (e) {
     return { ...DEFAULT_COLORS };
@@ -454,7 +391,7 @@ function loadColors() {
 }
 
 function saveColors(colors) {
-  localStorage.setItem('calendarWidgetColors', JSON.stringify(colors));
+  localStorage.setItem('calendarViewColors', JSON.stringify(colors));
 }
 
 let currentColors = loadColors();
@@ -497,14 +434,12 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
 
 // ---- Worker 연결 정보 (검색 위젯과 같은 Worker를 씀) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const dows = ['월', '화', '수', '목', '금', '토', '일'];
 const calGrid = document.getElementById('calGrid');
 const monthTitle = document.getElementById('monthTitle');
 const calStatus = document.getElementById('calStatus');
-const albumGrid = document.getElementById('albumGrid');
-const albumCount = document.getElementById('albumCount');
 const overlay = document.getElementById('modalOverlay');
 const modalTitle = document.getElementById('modalTitle');
 const modalBody = document.getElementById('modalBody');
@@ -531,12 +466,7 @@ async function loadMonth(year, month) {
     calStatus.textContent = '불러오기 실패: ' + err.message;
     monthData = { days: {}, albums: [] };
   }
-  render();
-}
-
-function render() {
   renderCalendar();
-  renderAlbums();
 }
 
 function renderCalendar() {
@@ -551,7 +481,6 @@ function renderCalendar() {
   });
 
   const firstOfMonth = new Date(viewYear, viewMonth - 1, 1);
-  // getDay(): 0=일 ~ 6=토. 월요일 시작 기준으로 변환
   const firstWeekday = (firstOfMonth.getDay() + 6) % 7;
   const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
@@ -624,23 +553,6 @@ document.getElementById('closeModal').addEventListener('click', () => {
 overlay.addEventListener('click', (e) => {
   if (e.target === overlay) overlay.classList.add('hidden');
 });
-
-function renderAlbums() {
-  const albums = monthData.albums || [];
-  albumCount.textContent = `${albums.length}장`;
-  albumGrid.innerHTML = '';
-  albums.forEach(a => {
-    const div = document.createElement('div');
-    div.className = 'album-cover';
-    div.title = a.title || '';
-    div.innerHTML = a.cover ? `<img src="${a.cover}">` : '';
-    if (a.pageUrl) {
-      div.style.cursor = 'pointer';
-      div.addEventListener('click', () => window.open(a.pageUrl, '_blank'));
-    }
-    albumGrid.appendChild(div);
-  });
-}
 
 document.getElementById('prevMonth').addEventListener('click', () => {
   viewMonth -= 1;
