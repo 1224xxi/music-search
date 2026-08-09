@@ -211,6 +211,15 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--text);
+    flex: 1;
+    min-width: 0;
+  }
+  .memo-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
   }
 
   .modal-overlay {
@@ -434,7 +443,7 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
 
 // ---- Worker 연결 정보 (검색 위젯과 같은 Worker를 씀) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const dows = ['월', '화', '수', '목', '금', '토', '일'];
 const calGrid = document.getElementById('calGrid');
@@ -511,6 +520,7 @@ function renderCalendar() {
         row.innerHTML = `
           <span class="badge ${e.type}">${e.type}</span>
           <span class="entry-text">${e.title} - ${e.artist}</span>
+          ${e.memo ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
         `;
         entriesWrap.appendChild(row);
       });
@@ -538,7 +548,8 @@ function openModal(day, entries) {
           <b>발매일</b> ${d.releaseDate || '—'} &nbsp; <b>분류</b> ${d.category || '—'} &nbsp; <b>평점</b> ${d.rating ?? '—'}<br>
           ${d.albumOf ? `<b>소속 앨범</b> ${d.albumOf}<br>` : ''}
           ${d.trackList ? `<b>트랙 목록</b> ${d.trackList}<br>` : ''}
-          ${d.memo ? `<b>메모</b> ${d.memo}` : ''}
+          ${d.memo ? `<b>메모</b> ${d.memo}<br>` : ''}
+          ${d.logMemo ? `<b>이날의 메모</b> ${d.logMemo}` : ''}
         </div>
       </div>
     </div>
