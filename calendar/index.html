@@ -26,9 +26,9 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', 'Pretendard', sans-serif;
-    padding: 28px 12px 80px;
+    padding: 20px 12px 80px;
   }
-  .wrap { max-width: 980px; margin: 0 auto; }
+  .wrap { max-width: 640px; margin: 0 auto; }
 
   .widget-title-bar {
     display: flex;
@@ -103,43 +103,87 @@
   }
   .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  .cal-header {
+  .mini-nav {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px 12px;
+    margin-bottom: 18px;
+  }
+  .mini-nav-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
   }
-  .cal-header h1 {
+  .mini-nav-header h1 {
     font-family: 'DM Sans', 'Pretendard', sans-serif;
     font-weight: 700;
-    font-size: 22px;
+    font-size: 15px;
     margin: 0;
-    letter-spacing: -0.01em;
   }
-  .cal-nav {
+  .mini-nav-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
   }
-  .cal-nav button {
-    background: var(--card);
+  .mini-nav-controls button {
+    background: var(--bg);
     border: 1px solid var(--border);
     color: var(--text);
-    width: 28px; height: 28px;
+    width: 22px; height: 22px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
   }
-  .cal-nav .today-btn {
+  .mini-nav-controls .today-btn {
     width: auto;
-    border-radius: 14px;
-    padding: 0 12px;
+    border-radius: 12px;
+    padding: 0 9px;
+    height: 22px;
     cursor: pointer;
   }
-  .cal-status {
+  .mini-strip {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mini-day {
+    flex-shrink: 0;
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 5px 0 6px;
+    border-radius: 8px;
+    cursor: default;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .mini-day.has-entry {
+    cursor: pointer;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+  }
+  .mini-day.has-entry:hover { border-color: var(--accent); }
+  .mini-day.today { color: var(--accent); font-weight: 700; }
+  .mini-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+  }
+  .mini-day.has-entry .mini-dot { opacity: 1; }
+
+  .status {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     color: var(--text-muted);
@@ -147,79 +191,71 @@
     margin-bottom: 10px;
   }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-  }
-  .dow {
+  .agenda { display: flex; flex-direction: column; gap: 14px; }
+  .agenda-group { }
+  .agenda-date {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     color: var(--text-muted);
-    text-align: center;
-    padding-bottom: 4px;
+    margin-bottom: 6px;
+    padding-left: 2px;
   }
-  .cell {
+  .agenda-date.today-label { color: var(--accent); font-weight: 600; }
+  .agenda-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    height: 96px;
-    padding: 6px 7px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
     cursor: pointer;
     transition: border-color 0.15s;
   }
-  .cell:hover { border-color: var(--accent); }
-  .cell.empty { background: transparent; border: none; cursor: default; }
-  .cell.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .daynum {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .cell.today .daynum { color: var(--accent); font-weight: 600; }
-
-  .entries {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    overflow-y: auto;
-    height: 66px;
-  }
-  .entry {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 10.5px;
-    line-height: 1.3;
+  .agenda-card:hover { border-color: var(--accent); }
+  .agenda-card img {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
     flex-shrink: 0;
+    background: var(--border);
+  }
+  .agenda-meta { flex: 1; min-width: 0; }
+  .agenda-title-row { display: flex; align-items: center; gap: 6px; }
+  .agenda-title {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .agenda-artist {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
   }
   .badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 600;
-    padding: 0px 3px;
+    padding: 1px 4px;
     border-radius: 3px;
     flex-shrink: 0;
   }
   .badge.t { color: var(--track-badge); background: #7d94a81a; }
   .badge.a { color: var(--album-badge); background: #e8927a1a; }
-  .entry-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--text);
-    flex: 1;
-    min-width: 0;
-  }
-  .memo-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
-    flex-shrink: 0;
+
+  .empty-month {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
   }
 
   .modal-overlay {
@@ -260,11 +296,7 @@
     flex-shrink: 0;
   }
   .detail-meta { flex: 1; min-width: 0; }
-  .detail-title-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .detail-title-row { display: flex; align-items: center; gap: 6px; }
   .detail-title { font-weight: 700; font-size: 14px; }
   .detail-artist { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
   .detail-sub {
@@ -320,17 +352,21 @@
     </div>
   </div>
 
-  <div class="cal-header">
-    <h1 id="monthTitle">2026년 7월</h1>
-    <div class="cal-nav">
-      <button id="prevMonth">‹</button>
-      <span class="today-btn" id="todayBtn">오늘로</span>
-      <button id="nextMonth">›</button>
+  <div class="mini-nav">
+    <div class="mini-nav-header">
+      <h1 id="monthTitle">2026년 7월</h1>
+      <div class="mini-nav-controls">
+        <button id="prevMonth">‹</button>
+        <span class="today-btn" id="todayBtn">오늘</span>
+        <button id="nextMonth">›</button>
+      </div>
     </div>
+    <div class="mini-strip" id="miniStrip"></div>
   </div>
-  <div class="cal-status" id="calStatus"></div>
 
-  <div class="grid" id="calGrid"></div>
+  <div class="status" id="calStatus"></div>
+
+  <div class="agenda" id="agenda"></div>
 </div>
 
 <div class="modal-overlay hidden" id="modalOverlay">
@@ -342,7 +378,6 @@
 </div>
 
 <script>
-// ---- 색상 설정 (URL 파라미터 우선, localStorage 보조) ----
 const DEFAULT_COLORS = {
   bg: '#fbfaf8',
   card: '#f2efe9',
@@ -441,24 +476,24 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
   }
 });
 
-// ---- Worker 연결 정보 (검색 위젯과 같은 Worker를 씀) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
 const WORKER_SECRET = 'jys.2180';
 
-const dows = ['월', '화', '수', '목', '금', '토', '일'];
-const calGrid = document.getElementById('calGrid');
 const monthTitle = document.getElementById('monthTitle');
 const calStatus = document.getElementById('calStatus');
+const miniStrip = document.getElementById('miniStrip');
+const agenda = document.getElementById('agenda');
 const overlay = document.getElementById('modalOverlay');
 const modalTitle = document.getElementById('modalTitle');
 const modalBody = document.getElementById('modalBody');
 
 const now = new Date();
 let viewYear = now.getFullYear();
-let viewMonth = now.getMonth() + 1; // 1~12
+let viewMonth = now.getMonth() + 1;
 let monthData = { days: {}, albums: [] };
 
 async function loadMonth(year, month) {
+  monthTitle.textContent = `${year}년 ${month}월`;
   if (!WORKER_URL || WORKER_SECRET.includes('여기에')) {
     calStatus.textContent = 'widget 코드 상단의 WORKER_URL / WORKER_SECRET을 먼저 채워주세요';
     return;
@@ -475,61 +510,80 @@ async function loadMonth(year, month) {
     calStatus.textContent = '불러오기 실패: ' + err.message;
     monthData = { days: {}, albums: [] };
   }
-  renderCalendar();
+  renderMiniStrip();
+  renderAgenda();
 }
 
-function renderCalendar() {
-  monthTitle.textContent = `${viewYear}년 ${viewMonth}월`;
-  calGrid.innerHTML = '';
-
-  dows.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'dow';
-    el.textContent = d;
-    calGrid.appendChild(el);
-  });
-
-  const firstOfMonth = new Date(viewYear, viewMonth - 1, 1);
-  const firstWeekday = (firstOfMonth.getDay() + 6) % 7;
+function renderMiniStrip() {
+  miniStrip.innerHTML = '';
   const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
   const todayDate = now.getDate();
 
-  for (let i = 0; i < firstWeekday; i++) {
-    const el = document.createElement('div');
-    el.className = 'cell empty';
-    calGrid.appendChild(el);
-  }
-
   for (let day = 1; day <= daysInMonth; day++) {
-    const cell = document.createElement('div');
-    cell.className = 'cell' + (isCurrentMonth && day === todayDate ? ' today' : '');
-
-    const num = document.createElement('div');
-    num.className = 'daynum';
-    num.textContent = day;
-    cell.appendChild(num);
-
-    const entries = monthData.days?.[day];
-    if (entries && entries.length > 0) {
-      const entriesWrap = document.createElement('div');
-      entriesWrap.className = 'entries';
-      entries.forEach(e => {
-        const row = document.createElement('div');
-        row.className = 'entry';
-        row.innerHTML = `
-          <span class="badge ${e.type}">${e.type}</span>
-          <span class="entry-text">${e.title} - ${e.artist}</span>
-          ${e.memo ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
-        `;
-        entriesWrap.appendChild(row);
+    const hasEntry = !!(monthData.days?.[day] && monthData.days[day].length > 0);
+    const el = document.createElement('div');
+    el.className = 'mini-day' + (hasEntry ? ' has-entry' : '') + (isCurrentMonth && day === todayDate ? ' today' : '');
+    el.innerHTML = `<span>${day}</span><span class="mini-dot"></span>`;
+    if (hasEntry) {
+      el.addEventListener('click', () => {
+        const target = document.getElementById(`agenda-day-${day}`);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
-      cell.appendChild(entriesWrap);
-      cell.addEventListener('click', () => openModal(day, entries));
     }
-
-    calGrid.appendChild(cell);
+    miniStrip.appendChild(el);
   }
+
+  if (isCurrentMonth) {
+    setTimeout(() => {
+      const todayEl = miniStrip.children[todayDate - 1];
+      if (todayEl) todayEl.scrollIntoView({ inline: 'center', block: 'nearest' });
+    }, 0);
+  }
+}
+
+function renderAgenda() {
+  agenda.innerHTML = '';
+  const days = Object.keys(monthData.days || {}).map(Number).sort((a, b) => b - a);
+
+  if (days.length === 0) {
+    agenda.innerHTML = '<div class="empty-month">이 달엔 기록이 없어요</div>';
+    return;
+  }
+
+  const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
+  const todayDate = now.getDate();
+
+  days.forEach(day => {
+    const group = document.createElement('div');
+    group.className = 'agenda-group';
+    group.id = `agenda-day-${day}`;
+
+    const isToday = isCurrentMonth && day === todayDate;
+    const dateLabel = document.createElement('div');
+    dateLabel.className = 'agenda-date' + (isToday ? ' today-label' : '');
+    dateLabel.textContent = `${viewMonth}월 ${day}일${isToday ? ' · 오늘' : ''}`;
+    group.appendChild(dateLabel);
+
+    monthData.days[day].forEach(e => {
+      const card = document.createElement('div');
+      card.className = 'agenda-card';
+      card.innerHTML = `
+        ${e.cover ? `<img src="${e.cover}">` : ''}
+        <div class="agenda-meta">
+          <div class="agenda-title-row">
+            <span class="badge ${e.type}">${e.type}</span>
+            <span class="agenda-title">${e.title}</span>
+          </div>
+          <div class="agenda-artist">${e.artist || ''}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => openModal(day, monthData.days[day]));
+      group.appendChild(card);
+    });
+
+    agenda.appendChild(group);
+  });
 }
 
 function openModal(day, entries) {
