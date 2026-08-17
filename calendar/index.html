@@ -26,9 +26,9 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', 'Pretendard', sans-serif;
-    padding: 20px 12px 80px;
+    padding: 20px 16px 80px;
   }
-  .wrap { max-width: 640px; margin: 0 auto; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
 
   .widget-title-bar {
     display: flex;
@@ -103,85 +103,113 @@
   }
   .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  .mini-nav {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 12px 12px;
-    margin-bottom: 18px;
+  /* ---- 레이아웃: 왼쪽 미니 캘린더 + 오른쪽 리스트 ---- */
+  .layout {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
   }
-  .mini-nav-header {
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+  }
+  .agenda-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+  @media (max-width: 720px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; position: static; }
+  }
+
+  /* ---- 미니 캘린더 ---- */
+  .mini-cal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 14px;
   }
-  .mini-nav-header h1 {
+  .mini-cal-header h1 {
     font-family: 'DM Sans', 'Pretendard', sans-serif;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 24px;
     margin: 0;
+    color: var(--accent);
   }
-  .mini-nav-controls {
+  .mini-cal-controls {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
   }
-  .mini-nav-controls button {
-    background: var(--bg);
+  .mini-cal-controls button {
+    background: transparent;
     border: 1px solid var(--border);
     color: var(--text);
-    width: 22px; height: 22px;
+    width: 24px; height: 24px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 12px;
   }
-  .mini-nav-controls .today-btn {
+  .mini-cal-controls .today-btn {
     width: auto;
     border-radius: 12px;
     padding: 0 9px;
-    height: 22px;
+    height: 24px;
     cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
   }
-  .mini-strip {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
+
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 6px;
   }
-  .mini-day {
-    flex-shrink: 0;
-    width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 5px 0 6px;
-    border-radius: 8px;
-    cursor: default;
+  .mini-dow {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     color: var(--text-muted);
+    text-align: center;
+    padding-bottom: 6px;
   }
-  .mini-day.has-entry {
-    cursor: pointer;
+  .mini-date {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 14px;
     color: var(--text);
-    background: var(--bg);
-    border: 1px solid var(--border);
+    cursor: default;
+    position: relative;
   }
-  .mini-day.has-entry:hover { border-color: var(--accent); }
-  .mini-day.today { color: var(--accent); font-weight: 700; }
+  .mini-date .num {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .mini-date.has-entry { cursor: pointer; font-weight: 600; }
+  .mini-date.today .num { background: var(--accent); color: #fff; font-weight: 700; }
+  .mini-date.selected:not(.today) .num { background: var(--accent-soft); }
   .mini-dot {
     width: 4px; height: 4px;
     border-radius: 50%;
     background: var(--accent);
     opacity: 0;
+    position: absolute;
+    bottom: 0;
   }
-  .mini-day.has-entry .mini-dot { opacity: 1; }
+  .mini-date.today .mini-dot { background: #fff; }
+  .mini-date.has-entry .mini-dot { opacity: 1; }
 
   .status {
     font-family: 'JetBrains Mono', monospace;
@@ -191,8 +219,8 @@
     margin-bottom: 10px;
   }
 
+  /* ---- 아젠다 리스트 ---- */
   .agenda { display: flex; flex-direction: column; gap: 14px; }
-  .agenda-group { }
   .agenda-date {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -258,6 +286,7 @@
     line-height: 1.8;
   }
 
+  /* ---- 모달 ---- */
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(60, 55, 48, 0.35);
@@ -352,21 +381,24 @@
     </div>
   </div>
 
-  <div class="mini-nav">
-    <div class="mini-nav-header">
-      <h1 id="monthTitle">2026년 7월</h1>
-      <div class="mini-nav-controls">
-        <button id="prevMonth">‹</button>
-        <span class="today-btn" id="todayBtn">오늘</span>
-        <button id="nextMonth">›</button>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="mini-cal-header">
+        <h1 id="monthTitle">8월</h1>
+        <div class="mini-cal-controls">
+          <button id="prevMonth">‹</button>
+          <span class="today-btn" id="todayBtn">오늘</span>
+          <button id="nextMonth">›</button>
+        </div>
       </div>
+      <div class="mini-grid" id="miniGrid"></div>
+      <div class="status" id="calStatus"></div>
     </div>
-    <div class="mini-strip" id="miniStrip"></div>
+
+    <div class="agenda-wrap">
+      <div class="agenda" id="agenda"></div>
+    </div>
   </div>
-
-  <div class="status" id="calStatus"></div>
-
-  <div class="agenda" id="agenda"></div>
 </div>
 
 <div class="modal-overlay hidden" id="modalOverlay">
@@ -407,7 +439,7 @@ function applyColors(colors) {
   root.setProperty('--bg', colors.bg);
   root.setProperty('--card', colors.card);
   root.setProperty('--accent', colors.accent);
-  root.setProperty('--accent-soft', hexToRgba(colors.accent, 0.13));
+  root.setProperty('--accent-soft', hexToRgba(colors.accent, 0.15));
   root.setProperty('--album-badge', colors.accent);
   root.setProperty('--text', colors.text);
   bgColorInput.value = colors.bg;
@@ -481,19 +513,21 @@ const WORKER_SECRET = 'jys.2180';
 
 const monthTitle = document.getElementById('monthTitle');
 const calStatus = document.getElementById('calStatus');
-const miniStrip = document.getElementById('miniStrip');
+const miniGrid = document.getElementById('miniGrid');
 const agenda = document.getElementById('agenda');
 const overlay = document.getElementById('modalOverlay');
 const modalTitle = document.getElementById('modalTitle');
 const modalBody = document.getElementById('modalBody');
 
+const dows = ['월', '화', '수', '목', '금', '토', '일'];
 const now = new Date();
 let viewYear = now.getFullYear();
 let viewMonth = now.getMonth() + 1;
+let selectedDay = null;
 let monthData = { days: {}, albums: [] };
 
 async function loadMonth(year, month) {
-  monthTitle.textContent = `${year}년 ${month}월`;
+  monthTitle.textContent = `${month}월`;
   if (!WORKER_URL || WORKER_SECRET.includes('여기에')) {
     calStatus.textContent = 'widget 코드 상단의 WORKER_URL / WORKER_SECRET을 먼저 채워주세요';
     return;
@@ -510,35 +544,47 @@ async function loadMonth(year, month) {
     calStatus.textContent = '불러오기 실패: ' + err.message;
     monthData = { days: {}, albums: [] };
   }
-  renderMiniStrip();
+  selectedDay = null;
+  renderMiniGrid();
   renderAgenda();
 }
 
-function renderMiniStrip() {
-  miniStrip.innerHTML = '';
+function renderMiniGrid() {
+  miniGrid.innerHTML = '';
+  dows.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'mini-dow';
+    el.textContent = d;
+    miniGrid.appendChild(el);
+  });
+
+  const firstOfMonth = new Date(viewYear, viewMonth - 1, 1);
+  const firstWeekday = (firstOfMonth.getDay() + 6) % 7;
   const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
   const todayDate = now.getDate();
 
+  for (let i = 0; i < firstWeekday; i++) {
+    const el = document.createElement('div');
+    el.className = 'mini-date';
+    miniGrid.appendChild(el);
+  }
+
   for (let day = 1; day <= daysInMonth; day++) {
     const hasEntry = !!(monthData.days?.[day] && monthData.days[day].length > 0);
+    const isToday = isCurrentMonth && day === todayDate;
     const el = document.createElement('div');
-    el.className = 'mini-day' + (hasEntry ? ' has-entry' : '') + (isCurrentMonth && day === todayDate ? ' today' : '');
-    el.innerHTML = `<span>${day}</span><span class="mini-dot"></span>`;
+    el.className = 'mini-date' + (hasEntry ? ' has-entry' : '') + (isToday ? ' today' : '') + (selectedDay === day ? ' selected' : '');
+    el.innerHTML = `<span class="num">${day}</span><span class="mini-dot"></span>`;
     if (hasEntry) {
       el.addEventListener('click', () => {
+        selectedDay = day;
+        renderMiniGrid();
         const target = document.getElementById(`agenda-day-${day}`);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
-    miniStrip.appendChild(el);
-  }
-
-  if (isCurrentMonth) {
-    setTimeout(() => {
-      const todayEl = miniStrip.children[todayDate - 1];
-      if (todayEl) todayEl.scrollIntoView({ inline: 'center', block: 'nearest' });
-    }, 0);
+    miniGrid.appendChild(el);
   }
 }
 
