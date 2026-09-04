@@ -473,7 +473,7 @@ const toastEl = document.getElementById('toast');
 
 // ---- Worker 연결 정보 (한 번만 여기 채워두면 계속 유지돼요) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const SEARCH_ENTITY = 'album,song';
 
@@ -659,6 +659,18 @@ async function copyText(text, label) {
   }
 }
 
+async function fetchItunes(term, country) {
+  const countryParam = country ? `&country=${country}` : '';
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${SEARCH_ENTITY}&limit=25${countryParam}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`iTunes API 응답 오류 (status ${res.status})`);
+  }
+  const data = await res.json();
+  console.log('iTunes 응답', country || '(country 없음)', data);
+  return data;
+}
+
 async function runSearch() {
   const term = q.value.trim();
   if (!term) return;
@@ -666,9 +678,12 @@ async function runSearch() {
   resultsEl.innerHTML = '';
 
   try {
-    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${SEARCH_ENTITY}&limit=25&country=KR`;
-    const res = await fetch(url);
-    const data = await res.json();
+    let data = await fetchItunes(term, 'KR');
+
+    // 한국 스토어에 없으면 country 파라미터 없이(전체 카탈로그) 재시도
+    if (!data.results || data.results.length === 0) {
+      data = await fetchItunes(term, '');
+    }
 
     if (!data.results || data.results.length === 0) {
       statusEl.textContent = '';
