@@ -20,6 +20,7 @@
     --border: #2c2e38;
     --track-color: #7fa8d9;
     --album-color: #e8b04b;
+    --single-color: #b39ddb;
   }
 
   * { box-sizing: border-box; }
@@ -225,6 +226,7 @@
 
   .type-tag.track { color: var(--track-color); background: #7fa8d91a; }
   .type-tag.album { color: var(--album-color); background: #e8b04b1a; }
+  .type-tag.single { color: var(--single-color); background: #b39ddb1a; }
 
   .artist {
     font-size: 13px;
@@ -389,23 +391,15 @@
     color: #14151a;
     border: none;
     border-radius: 6px;
-    padding: 5px 8px;
+    padding: 6px 12px;
     font-weight: 600;
-    font-size: 10px;
+    font-size: 11px;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     flex-shrink: 0;
     white-space: nowrap;
     transition: opacity 0.15s;
   }
-  .save-btn-group {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .save-btn.release { background: var(--album-color); }
-  .save-btn.digging { background: var(--track-color); color: #14151a; }
   .save-btn:hover { opacity: 0.85; }
   .save-btn:disabled { opacity: 0.5; cursor: default; }
   .save-btn.saved { background: #6fbf73 !important; }
@@ -473,7 +467,7 @@ const toastEl = document.getElementById('toast');
 
 // ---- Worker 연결 정보 (한 번만 여기 채워두면 계속 유지돼요) ----
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const SEARCH_ENTITY = 'album,song';
 
@@ -576,7 +570,7 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
   }
 });
 
-async function saveToNotion({ title, artist, date, typeLabel, art, btn, category, album }) {
+async function saveToNotion({ title, artist, date, typeLabel, art, btn, album }) {
   if (!WORKER_URL || WORKER_SECRET.includes('여기에')) {
     showToast('widget 코드 상단의 WORKER_URL / WORKER_SECRET을 먼저 채워주세요');
     return;
@@ -597,7 +591,6 @@ async function saveToNotion({ title, artist, date, typeLabel, art, btn, category
         releaseDate: date,
         type: typeLabel,
         coverUrl: art,
-        category,
         album,
       }),
     });
@@ -606,7 +599,7 @@ async function saveToNotion({ title, artist, date, typeLabel, art, btn, category
 
     btn.textContent = '완료';
     btn.classList.add('saved');
-    showToast(`"${title}" Notion에 저장됨 (${category})`);
+    showToast(`"${title}" Notion에 저장됨`);
   } catch (err) {
     btn.textContent = '실패';
     btn.classList.add('failed');
@@ -695,19 +688,40 @@ async function runSearch() {
       data.results.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
     }
 
-    statusEl.textContent = `${data.results.length}개 결과 · 카드를 누르면 제목/아티스트/발매일이 복사돼요`;
+    // 싱글(trackCount === 1)은 트랙/앨범 두 형태로 중복 검색되므로 하나로 합침
+    const merged = [];
+    const singleIndex = new Map();
+    data.results.forEach(item => {
+      const isSingleItem = (item.trackCount || 0) === 1;
+      if (isSingleItem) {
+        const rawTitle = (item.trackName || item.collectionName || '').replace(/\s*-\s*single$/i, '');
+        const key = (item.artistName || '').toLowerCase() + '::' + rawTitle.toLowerCase();
+        if (singleIndex.has(key)) {
+          const idx = singleIndex.get(key);
+          if (!merged[idx].trackName && item.trackName) merged[idx] = item;
+          return;
+        }
+        singleIndex.set(key, merged.length);
+      }
+      merged.push(item);
+    });
+
+    statusEl.textContent = `${merged.length}개 결과 · 카드를 누르면 제목/아티스트/발매일이 복사돼요`;
     resultsEl.innerHTML = '';
 
-    data.results.forEach(item => {
+    merged.forEach(item => {
       const isAlbum = item.wrapperType === 'collection' || item.kind === 'album';
-      const title = isAlbum ? item.collectionName : item.trackName;
+      const isSingle = (item.trackCount || 0) === 1;
+      const title = isSingle
+        ? (item.trackName || (item.collectionName || '').replace(/\s*-\s*single$/i, ''))
+        : (isAlbum ? item.collectionName : item.trackName);
       const artist = item.artistName;
       const dateRaw = isAlbum ? item.releaseDate : item.releaseDate;
       const date = fmtDate(dateRaw);
       const art = (item.artworkUrl100 || '').replace('100x100', '600x600');
-      const albumOf = !isAlbum ? item.collectionName : '';
-      const typeLabel = isAlbum ? '앨범' : '트랙';
-      const typeClass = isAlbum ? 'album' : 'track';
+      const albumOf = (!isAlbum && !isSingle) ? item.collectionName : '';
+      const typeLabel = isSingle ? '싱글' : (isAlbum ? '앨범' : '트랙');
+      const typeClass = isSingle ? 'single' : (isAlbum ? 'album' : 'track');
 
       const card = document.createElement('div');
       card.className = 'card';
@@ -727,24 +741,15 @@ async function runSearch() {
           <div class="date">${date}</div>
         </div>
         <div class="card-actions">
-          <div class="save-btn-group">
-            <button class="save-btn release" title="신규 발매로 저장">발매</button>
-            <button class="save-btn digging" title="신규 디깅으로 저장">디깅</button>
-          </div>
+          <button class="save-btn" title="Notion에 저장">저장</button>
           <button class="cover-btn" title="커버 이미지 URL만 복사">커버</button>
         </div>
       `;
 
-      card.querySelector('.save-btn.release').addEventListener('click', async (e) => {
+      card.querySelector('.save-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
         const btn = e.currentTarget;
-        await saveToNotion({ title, artist, date, typeLabel, art, btn, category: '신규 발매', album: albumOf });
-      });
-
-      card.querySelector('.save-btn.digging').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const btn = e.currentTarget;
-        await saveToNotion({ title, artist, date, typeLabel, art, btn, category: '신규 디깅', album: albumOf });
+        await saveToNotion({ title, artist, date, typeLabel, art, btn, album: albumOf });
       });
 
       card.querySelector('.cover-btn').addEventListener('click', (e) => {
