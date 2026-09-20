@@ -671,12 +671,23 @@ async function runSearch() {
   resultsEl.innerHTML = '';
 
   try {
-    let data = await fetchItunes(term, 'KR');
+    const [krData, globalData] = await Promise.all([
+      fetchItunes(term, 'KR').catch(() => ({ results: [] })),
+      fetchItunes(term, '').catch(() => ({ results: [] })),
+    ]);
 
-    // 한국 스토어에 없으면 country 파라미터 없이(전체 카탈로그) 재시도
-    if (!data.results || data.results.length === 0) {
-      data = await fetchItunes(term, '');
-    }
+    // 두 스토어 결과를 trackId/collectionId 기준으로 중복 없이 합침
+    const seenIds = new Set();
+    const combined = [];
+    [...(krData.results || []), ...(globalData.results || [])].forEach(item => {
+      const id = item.trackId || item.collectionId;
+      const key = id != null ? String(id) : `${item.artistName}::${item.trackName || item.collectionName}`;
+      if (seenIds.has(key)) return;
+      seenIds.add(key);
+      combined.push(item);
+    });
+
+    const data = { results: combined };
 
     if (!data.results || data.results.length === 0) {
       statusEl.textContent = '';
