@@ -652,6 +652,10 @@ async function copyText(text, label) {
   }
 }
 
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 async function fetchItunes(term, country) {
   const countryParam = country ? `&country=${country}` : '';
   const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${SEARCH_ENTITY}&limit=25${countryParam}`;
@@ -744,10 +748,10 @@ async function runSearch() {
           </div>
           <div class="meta">
             <div class="title-row">
-              <span class="title">${title || ''}</span>
+              <span class="title">${escapeHtml(title)}</span>
               <span class="type-tag ${typeClass}">${typeLabel}</span>
             </div>
-            <div class="artist">${artist || ''}${albumOf ? ' · ' + albumOf : ''}</div>
+            <div class="artist">${escapeHtml(artist)}${albumOf ? ' · ' + escapeHtml(albumOf) : ''}</div>
           </div>
           <div class="date">${date}</div>
         </div>
