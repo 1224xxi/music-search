@@ -518,7 +518,7 @@ document.getElementById('copyColorLink').addEventListener('click', async () => {
 });
 
 const WORKER_URL = 'https://music-search-proxy.jiyeonsung-jys.workers.dev';
-const WORKER_SECRET = 'jys.2180';
+const WORKER_SECRET = '여기에_Cloudflare에_넣은_WIDGET_SECRET_그대로_붙여넣기';
 
 const monthTitle = document.getElementById('monthTitle');
 const calStatus = document.getElementById('calStatus');
@@ -534,6 +534,10 @@ let viewYear = now.getFullYear();
 let viewMonth = now.getMonth() + 1;
 let selectedDay = null;
 let monthData = { days: {}, albums: [] };
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 async function loadMonth(year, month) {
   monthTitle.textContent = `${month}월`;
@@ -628,9 +632,9 @@ function renderAgenda() {
         <div class="agenda-meta">
           <div class="agenda-title-row">
             <span class="badge ${e.type}">${e.type}</span>
-            <span class="agenda-title">${e.title}</span>
+            <span class="agenda-title">${escapeHtml(e.title)}</span>
           </div>
-          <div class="agenda-artist">${e.artist || ''}</div>
+          <div class="agenda-artist">${escapeHtml(e.artist)}</div>
         </div>
       `;
       card.addEventListener('click', () => openModal(day, monthData.days[day]));
@@ -650,15 +654,15 @@ function openModal(day, entries) {
       <div class="detail-meta">
         <div class="detail-title-row">
           <span class="badge ${d.type}">${d.type}</span>
-          <span class="detail-title">${d.title}</span>
+          <span class="detail-title">${escapeHtml(d.title)}</span>
         </div>
-        <div class="detail-artist">${d.artist || ''}</div>
+        <div class="detail-artist">${escapeHtml(d.artist)}</div>
         <div class="detail-sub">
           <b>발매일</b> ${d.releaseDate || '—'} &nbsp; <b>평점</b> ${d.rating ?? '—'}<br>
-          ${d.albumOf ? `<b>소속 앨범</b> ${d.albumOf}<br>` : ''}
-          ${d.trackList ? `<b>트랙 목록</b> ${d.trackList}<br>` : ''}
-          ${d.memo ? `<b>메모</b> ${d.memo}<br>` : ''}
-          ${d.logMemo ? `<b>이날의 메모</b> ${d.logMemo}` : ''}
+          ${d.albumOf ? `<b>소속 앨범</b> ${escapeHtml(d.albumOf)}<br>` : ''}
+          ${d.trackList ? `<b>트랙 목록</b> ${escapeHtml(d.trackList)}<br>` : ''}
+          ${d.memo ? `<b>메모</b> ${escapeHtml(d.memo)}<br>` : ''}
+          ${d.logMemo ? `<b>이날의 메모</b> ${escapeHtml(d.logMemo)}` : ''}
         </div>
       </div>
     </div>
